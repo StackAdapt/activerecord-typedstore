@@ -41,6 +41,16 @@ module ActiveRecord::TypedStore
       changes
     end
 
+    def saved_changes
+      saved_changes = super
+      self.class.store_accessors.each do |attr|
+        if send("saved_change_to_#{attr}?")
+          saved_changes[attr] = [send("#{attr}_before_last_save"), send(attr)]
+        end
+      end
+      saved_changes
+    end
+
     def clear_attribute_change(attr_name)
       return if self.class.store_accessors.include?(attr_name.to_s)
       super

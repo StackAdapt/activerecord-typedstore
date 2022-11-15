@@ -46,6 +46,18 @@ module ActiveRecord::TypedStore
         define_method("restore_#{accessor_name}!") do
           send("#{accessor_name}=", send("#{accessor_name}_was"))
         end
+
+        define_method("saved_change_to_#{accessor_name}?") do
+          return false unless saved_change_to_attribute?(store_attribute)
+          prev_store, new_store = saved_change_to_attribute(store_attribute)
+          prev_store&.dig(accessor_name) != new_store&.dig(accessor_name)
+        end
+
+        define_method("#{accessor_name}_before_last_save") do
+          return unless saved_change_to_attribute?(store_attribute)
+          prev_store, _new_store = saved_change_to_attribute(store_attribute)
+          prev_store&.dig(accessor_name)
+        end
       end
     end
   end
